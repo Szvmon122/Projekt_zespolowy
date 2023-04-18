@@ -11,7 +11,7 @@ export default function App() {
   const [kategoria, setKategoria] = useState(Categories[0]);
 
   return (
-    <View style={{ padding: 16 }}>
+    <View style={styles}>
       <Text>Kwota:</Text>
       <TextInput
         value={kwota}
