@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Picker } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 const Categories = ['Spożywcze', 'Artykuły Biurowe', 'Rozrywka', 'Jedzenie', 'Sport', 'Ubrania'];
 
