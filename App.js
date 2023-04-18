@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Button } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, StyleSheet, Button } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Categories = ['Spożywcze', 'Artykuły Biurowe', 'Rozrywka', 'Jedzenie', 'Sport', 'Ubrania'];
+const Categories = [
+  "Spożywcze",
+  "Artykuły Biurowe",
+  "Rozrywka",
+  "Jedzenie",
+  "Sport",
+  "Ubrania",
+];
 const pobierzDane = async (klucz) => {
   try {
     const daneJSON = await AsyncStorage.getItem(klucz);
@@ -22,24 +29,29 @@ const zapiszDane = async (klucz, dane) => {
   }
 };
 
-export default function App() {
-  const [kwota, setKwota] = useState('');
-  const [data, setData] = useState('');
+const App = () => {
+  const [kwota, setKwota] = useState("");
+  const [data, setData] = useState("");
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
 
-  const handleDodaj = () => {
+  const handleDodaj = async () => {
     const nowyWydatek = { kwota, data, kategoria };
     setWydatki([...wydatki, nowyWydatek]);
-    zapiszDane('wydatki', wydatki)
-    setKwota('');
-    setData('');
+    setKwota("");
+    setData("");
     setKategoria(Categories[0]);
   };
 
   useEffect(() => {
-    pobierzDane('wydatki').then(wyd => setWydatki([...JSON.parse(wyd)])).catch(() => setWydatki([]))
-  }, []);
+    pobierzDane("wydatki")
+      .then(setWydatki)
+      .catch(() => setWydatki([]));
+  }, [])
+
+  useEffect(() => {
+    zapiszDane("wydatki", wydatki);
+  }, [wydatki]);
 
   return (
     <View style={{ padding: 16 }}>
@@ -72,15 +84,18 @@ export default function App() {
 
       <Button title="Dodaj" onPress={handleDodaj} />
       <Text>{JSON.stringify(wydatki, null, 2)}</Text>
-    </View>)
-}
+    </View>
+  );
+};
+
+export default App;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
