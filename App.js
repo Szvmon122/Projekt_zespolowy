@@ -36,7 +36,7 @@ const zapiszDane = async (klucz, dane) => {
   }
 };
 
-const today = new Date()
+const today = new Date();
 const App = () => {
   const [kwota, setKwota] = useState("");
   const [day, setDay] = useState(today.getDate());
@@ -45,13 +45,16 @@ const App = () => {
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
 
-  function deleteWydatek(i){
-    setWydatki([...wydatki.splice(0, i),
-      ...wydatki.splice(i+1)])
+  function deleteWydatek(i) {
+    setWydatki([...wydatki.splice(0, i), ...wydatki.splice(i + 1)]);
   }
 
   const handleDodaj = async () => {
-    const nowyWydatek = { kwota: convertCurrencyToInteger(parseFloat(kwota)), data: [day, month, year].join("-"), kategoria };
+    const nowyWydatek = {
+      kwota: convertCurrencyToInteger(parseFloat(kwota)),
+      data: [day, month, year].join("-"),
+      kategoria,
+    };
     setWydatki([...wydatki, nowyWydatek]);
     setKategoria(Categories[0]);
   };
@@ -60,7 +63,7 @@ const App = () => {
     pobierzDane("wydatki")
       .then(setWydatki)
       .catch(() => setWydatki([]));
-  }, [])
+  }, []);
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
@@ -76,29 +79,36 @@ const App = () => {
         style={{ borderWidth: 1, padding: 8 }}
       />
 
-      <Text>Dzień:</Text>
+      <View style={{ flexDirection: "row" }}>
+        <View style={inputStyles.container}>
+          <Text>Dzień:</Text>
+          <TextInput
+            value={day}
+            onChangeText={setDay}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, padding: 8 }}
+          />
+        </View>
 
-      <TextInput
-        value={day}
-        onChangeText={setDay}
-        keyboardType="numeric"
-        style={{ borderWidth: 1, padding: 8 }}
-      />
-      <Text>Miesiąc:</Text>
-      <TextInput
-        value={month}
-        onChangeText={setMonth}
-        keyboardType="numeric"
-        style={{ borderWidth: 1, padding: 8 }}
-      />
-      <Text>Rok:</Text>
-      <TextInput
-        value={year}
-        onChangeText={setYear}
-        keyboardType="numeric"
-        style={{ borderWidth: 1, padding: 8 }}
-      />
-
+        <View style={inputStyles.container}>
+          <Text>Miesiąc:</Text>
+          <TextInput
+            value={month}
+            onChangeText={setMonth}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, padding: 8 }}
+          />
+        </View>
+        <View style={inputStyles.container}>
+          <Text>Rok:</Text>
+          <TextInput
+            value={year}
+            onChangeText={setYear}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, padding: 8 }}
+          />
+        </View>
+      </View>
 
       <Text>Kategoria:</Text>
       <Picker
@@ -113,28 +123,22 @@ const App = () => {
 
       <Button title="Dodaj" onPress={handleDodaj} />
       {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
-      {wydatki.map((wydatek, i) =>
-      (<View key={wydatek.kwota.toString() + i} >
-        <Button title="Usuń" onPress={() => deleteWydatek(i)}/>
-        <Text >{wydatek.kwota}</Text>
-        <Text >{wydatek.data.replaceAll('-','/')}</Text>
-        <Text >{wydatek.kategoria}</Text>
-      </View>
-      )
-      )}
+      {wydatki.map((wydatek, i) => (
+        <View key={wydatek.kwota.toString() + i}>
+          <Button title="Usuń" onPress={() => deleteWydatek(i)} />
+          <Text>{wydatek.kwota}</Text>
+          <Text>{wydatek.data.replaceAll("-", "/")}</Text>
+          <Text>{wydatek.kategoria}</Text>
+        </View>
+      ))}
     </View>
   );
 };
 
 export default App;
 
-const styles = StyleSheet.create({
+const inputStyles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    width: "60px",
   },
 });
-
-
