@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, Button } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import MyDatePicker from "./components/datepicker";
 
 const Categories = [
-  "Spożywcze",
+  "Zakupy Spożywcze",
   "Artykuły Biurowe",
   "Rozrywka",
   "Jedzenie",
@@ -20,6 +21,12 @@ const pobierzDane = async (klucz) => {
     return [];
   }
 };
+function convertCurrencyToInteger(currency) {
+  return parseInt(currency * 100);
+}
+function convertIntegerToCurrency(integer) {
+  return parseFloat((integer / 100).toFixed(2));
+}
 const zapiszDane = async (klucz, dane) => {
   try {
     const daneJSON = JSON.stringify(dane);
@@ -29,17 +36,23 @@ const zapiszDane = async (klucz, dane) => {
   }
 };
 
+const today = new Date()
 const App = () => {
   const [kwota, setKwota] = useState("");
-  const [data, setData] = useState("");
+  const [day, setDay] = useState(today.getDate());
+  const [month, setMonth] = useState(today.getMonth() + 1);
+  const [year, setYear] = useState(today.getFullYear());
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
 
+  function deleteWydatek(i){
+    setWydatki([...wydatki.splice(0, i),
+      ...wydatki.splice(i+1)])
+  }
+
   const handleDodaj = async () => {
-    const nowyWydatek = { kwota, data, kategoria };
+    const nowyWydatek = { kwota: convertCurrencyToInteger(parseFloat(kwota)), data: [day, month, year].join("-"), kategoria };
     setWydatki([...wydatki, nowyWydatek]);
-    setKwota("");
-    setData("");
     setKategoria(Categories[0]);
   };
 
@@ -63,13 +76,29 @@ const App = () => {
         style={{ borderWidth: 1, padding: 8 }}
       />
 
-      <Text>Data:</Text>
+      <Text>Dzień:</Text>
+
       <TextInput
-        value={data}
-        onChangeText={setData}
+        value={day}
+        onChangeText={setDay}
         keyboardType="numeric"
         style={{ borderWidth: 1, padding: 8 }}
       />
+      <Text>Miesiąc:</Text>
+      <TextInput
+        value={month}
+        onChangeText={setMonth}
+        keyboardType="numeric"
+        style={{ borderWidth: 1, padding: 8 }}
+      />
+      <Text>Rok:</Text>
+      <TextInput
+        value={year}
+        onChangeText={setYear}
+        keyboardType="numeric"
+        style={{ borderWidth: 1, padding: 8 }}
+      />
+
 
       <Text>Kategoria:</Text>
       <Picker
@@ -83,7 +112,16 @@ const App = () => {
       </Picker>
 
       <Button title="Dodaj" onPress={handleDodaj} />
-      <Text>{JSON.stringify(wydatki, null, 2)}</Text>
+      {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
+      {wydatki.map((wydatek, i) =>
+      (<View key={wydatek.kwota.toString() + i} >
+        <Button title="Usuń" onPress={() => deleteWydatek(i)}/>
+        <Text >{wydatek.kwota}</Text>
+        <Text >{wydatek.data.replaceAll('-','/')}</Text>
+        <Text >{wydatek.kategoria}</Text>
+      </View>
+      )
+      )}
     </View>
   );
 };
@@ -99,5 +137,4 @@ const styles = StyleSheet.create({
   },
 });
 
-// elo test aaaa
-// jeszze
+
