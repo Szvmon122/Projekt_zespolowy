@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Button } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MyDatePicker from "./components/datepicker";
+import e from "express";
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -39,9 +40,9 @@ const zapiszDane = async (klucz, dane) => {
 const today = new Date();
 const App = () => {
   const [kwota, setKwota] = useState("");
-  const [day, setDay] = useState(today.getDate());
-  const [month, setMonth] = useState(today.getMonth() + 1);
-  const [year, setYear] = useState(today.getFullYear());
+  const [day, setDay] = useState(today.getDate().toString());
+  const [month, setMonth] = useState((today.getMonth() + 1).toString());
+  const [year, setYear] = useState(today.getFullYear().toString());
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
 
@@ -60,9 +61,18 @@ const App = () => {
   };
 
   useEffect(() => {
-    pobierzDane("wydatki")
-      .then(setWydatki)
-      .catch(() => setWydatki([]));
+    fetch("http://localhost:3000/dane", {mode:"no-cors"})
+      .then((r) => {
+        const d = r.json()
+        console.log(d)
+        return d
+      })
+      .then(console.log)
+      .catch((e) => {setWydatki([])
+      console.log(e)});
+    // pobierzDane("wydatki")
+    //   .then(setWydatki)
+    //   .catch(() => setWydatki([]));
   }, []);
 
   useEffect(() => {
@@ -131,6 +141,7 @@ const App = () => {
           <Text>{wydatek.kategoria}</Text>
         </View>
       ))}
+      {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
 };
@@ -139,6 +150,6 @@ export default App;
 
 const inputStyles = StyleSheet.create({
   container: {
-    width: "60px",
+    width: 60,
   },
 });
