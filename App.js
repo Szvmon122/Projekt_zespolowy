@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, Button } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import MyDatePicker from "./components/datepicker";
-import e from "express";
+import axios from 'axios'
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -36,6 +35,16 @@ const zapiszDane = async (klucz, dane) => {
     console.error(error);
   }
 };
+const fetchData = async () => {
+  const { data } = await axios("http://localhost:3000/dane", {
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'Application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
+  })
+  return data
+};
 
 const today = new Date();
 const App = () => {
@@ -61,15 +70,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:3000/dane", {mode:"no-cors"})
-      .then((r) => {
-        const d = r.json()
-        console.log(d)
-        return d
-      })
-      .then(console.log)
-      .catch((e) => {setWydatki([])
-      console.log(e)});
+    fetchData().then(setWydatki)
     // pobierzDane("wydatki")
     //   .then(setWydatki)
     //   .catch(() => setWydatki([]));
@@ -133,8 +134,8 @@ const App = () => {
 
       <Button title="Dodaj" onPress={handleDodaj} />
       {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
-      {wydatki.map((wydatek, i) => (
-        <View key={wydatek.kwota.toString() + i}>
+      {wydatki.splice(0, 10).map((wydatek, i) => (
+        <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
           <Button title="Usuń" onPress={() => deleteWydatek(i)} />
           <Text>{wydatek.kwota}</Text>
           <Text>{wydatek.data.replaceAll("-", "/")}</Text>

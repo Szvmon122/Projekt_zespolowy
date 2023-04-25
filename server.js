@@ -1,6 +1,7 @@
 const http = require('http');
 
 const fs = require('fs');
+const cors = require('cors');
 
 function readJSONFile(filePath) {
   // Odczytanie zawartości pliku
@@ -16,13 +17,15 @@ function readJSONFile(filePath) {
 
 const express = require('express');
 const app = express();
+app.use(cors())
 
 // Definiowanie ścieżki GET "/dane"
 app.get('/dane', (req, res) => {
   // Wygenerowanie losowych danych do zwrócenia jako odpowiedź
-  const data = readJSONFile("Dane.json")
+  const data = readJSONFile("./Dane.json")
 
   // Zwrócenie danych jako odpowiedź w formacie JSON
+  console.log({ data })
   res.json(data);
 });
 
