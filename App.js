@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, Button } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from 'axios'
+import axios from "axios";
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -24,12 +24,10 @@ const pobierzDane = async (klucz) => {
 
 function createfilter(startDate, endDate) {
   // Użyj metody filter, aby utworzyć nową tablicę zawierającą tylko transakcje z podanego zakresu daty
-  return transakcja => {
+  return (transakcja) => {
     const transactionDate = new Date(transakcja.data);
     return transactionDate >= startDate && transactionDate <= endDate;
   };
-
-  
 }
 
 function convertCurrencyToInteger(currency) {
@@ -48,13 +46,13 @@ const zapiszDane = async (klucz, dane) => {
 };
 const fetchData = async () => {
   const { data } = await axios("http://localhost:3000/dane", {
-    mode: 'no-cors',
+    mode: "no-cors",
     headers: {
-      'Content-Type': 'Application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  })
-  return data
+      "Content-Type": "Application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+  return data;
 };
 
 const today = new Date();
@@ -81,7 +79,14 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchData().then(setWydatki)
+    fetchData().then((data) =>
+      setWydatki(
+        data.map((el) => ({
+          ...el,
+          data: el.data.split("-").reverse().join("-"),
+        }))
+      )
+    );
     // pobierzDane("wydatki")
     //   .then(setWydatki)
     //   .catch(() => setWydatki([]));
@@ -89,9 +94,10 @@ const App = () => {
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
-    const a =
-    wydatki.filter(createfilter(new Date("20-04-2023"), new Date("25-04-2023")))
-    console.log(a, wydatki);
+    const a = wydatki.filter(
+      createfilter(new Date("2023-04-15"), new Date("2023-04-25"))
+    );
+    console.log(a.length);
   }, [wydatki]);
 
   return (
@@ -148,7 +154,7 @@ const App = () => {
 
       <Button title="Dodaj" onPress={handleDodaj} />
       {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
-      {wydatki.filter(createfilter(new Date("20-04-2023"), new Date("25-04-2023"))).map((wydatek, i) => (
+      {wydatki.map((wydatek, i) => (
         <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
           <Button title="Usuń" onPress={() => deleteWydatek(i)} />
           <Text>{wydatek.kwota}</Text>
@@ -156,7 +162,6 @@ const App = () => {
           <Text>{wydatek.kategoria}</Text>
         </View>
       ))}
-      
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
