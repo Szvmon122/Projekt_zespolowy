@@ -94,10 +94,6 @@ const App = () => {
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
-    const a = wydatki.filter(
-      createfilter(new Date("2023-04-15"), new Date("2023-04-25"))
-    );
-    console.log(a.length);
   }, [wydatki]);
 
   return (
@@ -154,7 +150,7 @@ const App = () => {
 
       <Button title="Dodaj" onPress={handleDodaj} />
       {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
-      {wydatki.map((wydatek, i) => (
+      {wydatki.filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25"))).map((wydatek, i) => (
         <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
           <Button title="Usuń" onPress={() => deleteWydatek(i)} />
           <Text>{wydatek.kwota}</Text>
