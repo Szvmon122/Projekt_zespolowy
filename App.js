@@ -28,7 +28,30 @@ function createfilter(startDate, endDate) {
     const transactionDate = new Date(transakcja.data);
     return transactionDate >= startDate && transactionDate <= endDate;
   };
+
+
 }
+
+function groupByCategory(data) {
+  // Utwórz pusty obiekt, w którym będą grupowane transakcje
+  const groupedData = {};
+
+  // Przejdź przez każdą transakcję
+  data.forEach(transakcja => {
+    const kategoria = transakcja.kategoria;
+
+    // Jeśli kategoria jeszcze nie została dodana do obiektu, utwórz nową tablicę dla tej kategorii
+    if (!groupedData[kategoria]) {
+      groupedData[kategoria] = [];
+    }
+
+    // Dodaj bieżącą transakcję do tablicy transakcji dla tej kategorii
+    groupedData[kategoria].push(transakcja);
+  });
+
+  return groupedData;
+}
+
 
 function convertCurrencyToInteger(currency) {
   return parseInt(currency * 100);
@@ -158,6 +181,7 @@ const App = () => {
           <Text>{wydatek.kategoria}</Text>
         </View>
       ))}
+      <span>{JSON.parse(JSON.stringify(wydatki.filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25")))), null, 2)}</span>
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
