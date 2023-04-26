@@ -21,6 +21,17 @@ const pobierzDane = async (klucz) => {
     return [];
   }
 };
+
+function createfilter(startDate, endDate) {
+  // Użyj metody filter, aby utworzyć nową tablicę zawierającą tylko transakcje z podanego zakresu daty
+  return transakcja => {
+    const transactionDate = new Date(transakcja.data);
+    return transactionDate >= startDate && transactionDate <= endDate;
+  };
+
+  
+}
+
 function convertCurrencyToInteger(currency) {
   return parseInt(currency * 100);
 }
@@ -78,6 +89,9 @@ const App = () => {
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
+    const a =
+    wydatki.filter(createfilter(new Date("20-04-2023"), new Date("25-04-2023")))
+    console.log(a, wydatki);
   }, [wydatki]);
 
   return (
@@ -134,7 +148,7 @@ const App = () => {
 
       <Button title="Dodaj" onPress={handleDodaj} />
       {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
-      {wydatki.splice(0, 10).map((wydatek, i) => (
+      {wydatki.filter(createfilter(new Date("20-04-2023"), new Date("25-04-2023"))).map((wydatek, i) => (
         <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
           <Button title="Usuń" onPress={() => deleteWydatek(i)} />
           <Text>{wydatek.kwota}</Text>
@@ -142,6 +156,7 @@ const App = () => {
           <Text>{wydatek.kategoria}</Text>
         </View>
       ))}
+      
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
