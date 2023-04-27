@@ -119,10 +119,11 @@ const App = () => {
 
   useEffect(() => {
     setPlotData(
-      Object.entries(wydatkiGrupowane).reduce((acc, [key, arr]) => {
-        acc[key] = arr.reduce((a, b) => a + b.kwota, 0);
-        return acc;
-      }, {})
+      Object.entries(wydatkiGrupowane).map(([name, arr]) => ({
+        name,
+        value: arr.reduce((a, b) => a + b.kwota, 0),
+        color: "#facfac",
+      }))
     );
   }, [wydatkiGrupowane]);
 
@@ -190,6 +191,7 @@ const App = () => {
             <Text>{wydatek.kategoria}</Text>
           </View>
         ))}
+      <span>{JSON.stringify(plotData)}</span>
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
