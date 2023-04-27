@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, Button } from "react-native";
+import { View, Text, TextInput, StyleSheet, Button, Dimensions } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { BarChart, PieChart } from "react-native-chart-kit";
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -83,7 +84,7 @@ const App = () => {
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
   const [wydatkiGrupowane, setWydatkiGrupowane] = useState({});
-  const [plotData, setPlotData] = useState({});
+  const [plotData, setPlotData] = useState([]);
 
   function deleteWydatek(i) {
     setWydatki([...wydatki.splice(0, i), ...wydatki.splice(i + 1)]);
@@ -92,7 +93,7 @@ const App = () => {
   const handleDodaj = async () => {
     const nowyWydatek = {
       kwota: convertCurrencyToInteger(parseFloat(kwota)),
-      data: [day, month, year].join("-"),
+      data: [year, month, day].join("-"),
       kategoria,
     };
     setWydatki([...wydatki, nowyWydatek]);
@@ -119,10 +120,11 @@ const App = () => {
 
   useEffect(() => {
     setPlotData(
-      Object.entries(wydatkiGrupowane).map(([name, arr]) => ({
+      Object.entries(wydatkiGrupowane).map(([name, arr], i) => ({
         name,
-        value: arr.reduce((a, b) => a + b.kwota, 0),
-        color: "#facfac",
+        kwota: arr.reduce((a, b) => a + b.kwota, 0),
+         color: `rgba(33,70, 155,${(i+1)*0.1})`,
+         legendFontColor: `rgba(0,0,0, 1)`
       }))
     );
   }, [wydatkiGrupowane]);
@@ -180,9 +182,9 @@ const App = () => {
       </Picker>
 
       <Button title="Dodaj" onPress={handleDodaj} />
-      {wydatki
-        .splice(0, 5)
+      {/* {wydatki
         .filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25")))
+        .splice(0, 5)
         .map((wydatek, i) => (
           <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
             <Button title="Usuń" onPress={() => deleteWydatek(i)} />
@@ -190,8 +192,24 @@ const App = () => {
             <Text>{wydatek.data.replaceAll("-", "/")}</Text>
             <Text>{wydatek.kategoria}</Text>
           </View>
-        ))}
-      <span>{JSON.stringify(plotData)}</span>
+        ))} */}
+
+      {plotData.length && <PieChart
+        data={plotData}
+        accessor={"kwota"}
+        width={Dimensions.get("window").width}
+        
+        height={300}
+        backgroundColor="transparent"
+        chartConfig={{
+          backgroundColor: "#e26a00",
+          backgroundGradientFrom: "#fb8c00",
+          backgroundGradientTo: "#ffa726",
+
+          color: (opacity = 1, i) => `rgba(0, 0, 0, ${opacity})`,
+        }}
+      />}
+
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
