@@ -28,8 +28,6 @@ function createfilter(startDate, endDate) {
     const transactionDate = new Date(transakcja.data);
     return transactionDate >= startDate && transactionDate <= endDate;
   };
-
-
 }
 
 function groupByCategory(data) {
@@ -37,7 +35,7 @@ function groupByCategory(data) {
   const groupedData = {};
 
   // Przejdź przez każdą transakcję
-  data.forEach(transakcja => {
+  data.forEach((transakcja) => {
     const kategoria = transakcja.kategoria;
 
     // Jeśli kategoria jeszcze nie została dodana do obiektu, utwórz nową tablicę dla tej kategorii
@@ -51,7 +49,6 @@ function groupByCategory(data) {
 
   return groupedData;
 }
-
 
 function convertCurrencyToInteger(currency) {
   return parseInt(currency * 100);
@@ -70,12 +67,11 @@ const zapiszDane = async (klucz, dane) => {
 const fetchData = async () => {
   const { data } = await axios("http://localhost:3000/dane", {
     mode: "no-cors",
-    headers: {
-      "Content-Type": "Application/json",
-      "Access-Control-Allow-Origin": "*",
-    },
   });
-  return data;
+  return data.map((el) => ({
+    ...el,
+    data: el.data.split("-").reverse().join("-"),
+  }));
 };
 
 const today = new Date();
@@ -86,6 +82,8 @@ const App = () => {
   const [year, setYear] = useState(today.getFullYear().toString());
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
+  const [wydatkiGrupowane, setWydatkiGrupowane] = useState({});
+  const [plotData, setPlotData] = useState({});
 
   function deleteWydatek(i) {
     setWydatki([...wydatki.splice(0, i), ...wydatki.splice(i + 1)]);
@@ -102,14 +100,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchData().then((data) =>
-      setWydatki(
-        data.map((el) => ({
-          ...el,
-          data: el.data.split("-").reverse().join("-"),
-        }))
-      )
-    );
+    fetchData().then(setWydatki);
     // pobierzDane("wydatki")
     //   .then(setWydatki)
     //   .catch(() => setWydatki([]));
@@ -117,7 +108,23 @@ const App = () => {
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
+    setWydatkiGrupowane(
+      groupByCategory(
+        wydatki.filter(
+          createfilter(new Date("2023-04-15"), new Date("2023-04-25"))
+        )
+      )
+    );
   }, [wydatki]);
+
+  useEffect(() => {
+    setPlotData(
+      Object.entries(wydatkiGrupowane).reduce((acc, [key, arr]) => {
+        acc[key] = arr.reduce((a, b) => a + b.kwota, 0);
+        return acc;
+      }, {})
+    );
+  }, [wydatkiGrupowane]);
 
   return (
     <View style={{ padding: 16 }}>
@@ -172,16 +179,17 @@ const App = () => {
       </Picker>
 
       <Button title="Dodaj" onPress={handleDodaj} />
-      {/* <Text>{JSON.stringify(wydatki, null, 2)}</Text> */}
-      {wydatki.filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25"))).map((wydatek, i) => (
-        <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
-          <Button title="Usuń" onPress={() => deleteWydatek(i)} />
-          <Text>{wydatek.kwota}</Text>
-          <Text>{wydatek.data.replaceAll("-", "/")}</Text>
-          <Text>{wydatek.kategoria}</Text>
-        </View>
-      ))}
-      <span>{JSON.parse(JSON.stringify(wydatki.filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25")))), null, 2)}</span>
+      {wydatki
+        .splice(0, 5)
+        .filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25")))
+        .map((wydatek, i) => (
+          <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
+            <Button title="Usuń" onPress={() => deleteWydatek(i)} />
+            <Text>{wydatek.kwota}</Text>
+            <Text>{wydatek.data.replaceAll("-", "/")}</Text>
+            <Text>{wydatek.kategoria}</Text>
+          </View>
+        ))}
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
