@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, Button, Dimensions } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
-import { BarChart, PieChart } from "react-native-chart-kit";
+import React, { useEffect, useState } from "react";
+import { Button, Dimensions, Text, TextInput, View } from "react-native";
+import { PieChart } from "react-native-chart-kit";
+import DateInput from "./components/DateInput";
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -78,13 +79,15 @@ const fetchData = async () => {
 const today = new Date();
 const App = () => {
   const [kwota, setKwota] = useState("");
-  const [day, setDay] = useState(today.getDate().toString());
-  const [month, setMonth] = useState((today.getMonth() + 1).toString());
-  const [year, setYear] = useState(today.getFullYear().toString());
+  // const [day, setDay] = useState(today.getDate().toString());
+  // const [month, setMonth] = useState((today.getMonth() + 1).toString());
+  // const [year, setYear] = useState(today.getFullYear().toString());
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
   const [wydatkiGrupowane, setWydatkiGrupowane] = useState({});
   const [plotData, setPlotData] = useState([]);
+  const [rangeStart, setRangeStart] = useState(new Date());
+  const [rangeEnd, setRangeEnd] = useState(new Date());
 
   function deleteWydatek(i) {
     setWydatki([...wydatki.splice(0, i), ...wydatki.splice(i + 1)]);
@@ -109,22 +112,25 @@ const App = () => {
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
+  }, [wydatki, rangeEnd, rangeStart]);
+
+  useEffect(() => {
     setWydatkiGrupowane(
       groupByCategory(
         wydatki.filter(
-          createfilter(new Date("2023-04-15"), new Date("2023-04-25"))
+          createfilter(rangeStart, rangeEnd)
         )
       )
     );
-  }, [wydatki]);
+  }, [rangeStart, rangeEnd]);
 
   useEffect(() => {
     setPlotData(
       Object.entries(wydatkiGrupowane).map(([name, arr], i) => ({
         name,
         kwota: arr.reduce((a, b) => a + b.kwota, 0),
-         color: `rgba(33,70, 155,${(i+1)*0.1})`,
-         legendFontColor: `rgba(0,0,0, 1)`
+        color: `rgba(33,70, 155,${(i + 1) * 0.1})`,
+        legendFontColor: `rgba(0,0,0, 1)`,
       }))
     );
   }, [wydatkiGrupowane]);
@@ -139,36 +145,21 @@ const App = () => {
         style={{ borderWidth: 1, padding: 8 }}
       />
 
-      <View style={{ flexDirection: "row" }}>
-        <View style={inputStyles.container}>
-          <Text>Dzień:</Text>
-          <TextInput
-            value={day}
-            onChangeText={setDay}
-            keyboardType="numeric"
-            style={{ borderWidth: 1, padding: 8 }}
-          />
+      {/* <DateInput onChange={(date) => console.log(date) }/> */}
+      <View style={{ flex: 1, flexDirection: "row", gap: "8px" }}>
+        <View>
+          <Text>{rangeStart.toDateString()}</Text>
+          <Text>Zakres od:</Text>
+          <DateInput onChange={setRangeStart} />
         </View>
-
-        <View style={inputStyles.container}>
-          <Text>Miesiąc:</Text>
-          <TextInput
-            value={month}
-            onChangeText={setMonth}
-            keyboardType="numeric"
-            style={{ borderWidth: 1, padding: 8 }}
-          />
-        </View>
-        <View style={inputStyles.container}>
-          <Text>Rok:</Text>
-          <TextInput
-            value={year}
-            onChangeText={setYear}
-            keyboardType="numeric"
-            style={{ borderWidth: 1, padding: 8 }}
-          />
+        <View>
+          <Text>{rangeEnd.toDateString()}</Text>
+          <Text>Zakres do:</Text>
+          <DateInput onChange={setRangeEnd} />
         </View>
       </View>
+
+      <Text>{JSON.stringify(wydatkiGrupowane)}</Text>
 
       <Text>Kategoria:</Text>
       <Picker
@@ -194,21 +185,22 @@ const App = () => {
           </View>
         ))} */}
 
-      {plotData.length && <PieChart
-        data={plotData}
-        accessor={"kwota"}
-        width={Dimensions.get("window").width}
-        
-        height={300}
-        backgroundColor="transparent"
-        chartConfig={{
-          backgroundColor: "#e26a00",
-          backgroundGradientFrom: "#fb8c00",
-          backgroundGradientTo: "#ffa726",
+      {plotData.length && (
+        <PieChart
+          data={plotData}
+          accessor={"kwota"}
+          width={Dimensions.get("window").width}
+          height={300}
+          backgroundColor="transparent"
+          chartConfig={{
+            backgroundColor: "#e26a00",
+            backgroundGradientFrom: "#fb8c00",
+            backgroundGradientTo: "#ffa726",
 
-          color: (opacity = 1, i) => `rgba(0, 0, 0, ${opacity})`,
-        }}
-      />}
+            color: (opacity = 1, i) => `rgba(0, 0, 0, ${opacity})`,
+          }}
+        />
+      )}
 
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
@@ -216,9 +208,3 @@ const App = () => {
 };
 
 export default App;
-
-const inputStyles = StyleSheet.create({
-  container: {
-    width: 60,
-  },
-});
