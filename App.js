@@ -116,11 +116,7 @@ const App = () => {
 
   useEffect(() => {
     setWydatkiGrupowane(
-      groupByCategory(
-        wydatki.filter(
-          createfilter(rangeStart, rangeEnd)
-        )
-      )
+      groupByCategory(wydatki.filter(createfilter(rangeStart, rangeEnd)))
     );
   }, [rangeStart, rangeEnd]);
 
@@ -159,8 +155,6 @@ const App = () => {
         </View>
       </View>
 
-      <Text>{JSON.stringify(wydatkiGrupowane)}</Text>
-
       <Text>Kategoria:</Text>
       <Picker
         selectedValue={kategoria}
@@ -185,7 +179,7 @@ const App = () => {
           </View>
         ))} */}
 
-      {plotData.length && (
+      {plotData.length !== 0 && (
         <PieChart
           data={plotData}
           accessor={"kwota"}
@@ -201,7 +195,16 @@ const App = () => {
           }}
         />
       )}
-
+      {plotData.length !== 0 && (
+        <View>
+          <Text>W wybranym okresie wydałeś łącznie:</Text>
+          <Text>
+            {convertIntegerToCurrency(
+              plotData.reduce((acc, { kwota }) => acc + kwota, 0)
+            )} zł
+          </Text>
+        </View>
+      )}
       {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
