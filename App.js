@@ -1,10 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Button, Dimensions, Text, TextInput, View } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import DateInput from "./components/DateInput";
+import './utils/index'
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -14,74 +13,9 @@ const Categories = [
   "Sport",
   "Ubrania",
 ];
-const pobierzDane = async (klucz) => {
-  try {
-    const daneJSON = await AsyncStorage.getItem(klucz);
-    return JSON.parse(daneJSON);
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
 
-function createfilter(startDate, endDate) {
-  // Użyj metody filter, aby utworzyć nową tablicę zawierającą tylko transakcje z podanego zakresu daty
-  return (transakcja) => {
-    const transactionDate = new Date(transakcja.data);
-    return transactionDate >= startDate && transactionDate <= endDate;
-  };
-}
-
-function groupByCategory(data) {
-  // Utwórz pusty obiekt, w którym będą grupowane transakcje
-  const groupedData = {};
-
-  // Przejdź przez każdą transakcję
-  data.forEach((transakcja) => {
-    const kategoria = transakcja.kategoria;
-
-    // Jeśli kategoria jeszcze nie została dodana do obiektu, utwórz nową tablicę dla tej kategorii
-    if (!groupedData[kategoria]) {
-      groupedData[kategoria] = [];
-    }
-
-    // Dodaj bieżącą transakcję do tablicy transakcji dla tej kategorii
-    groupedData[kategoria].push(transakcja);
-  });
-
-  return groupedData;
-}
-
-function convertCurrencyToInteger(currency) {
-  return parseInt(currency * 100);
-}
-function convertIntegerToCurrency(integer) {
-  return parseFloat((integer / 100).toFixed(2));
-}
-const zapiszDane = async (klucz, dane) => {
-  try {
-    const daneJSON = JSON.stringify(dane);
-    await AsyncStorage.setItem(klucz, daneJSON);
-  } catch (error) {
-    console.error(error);
-  }
-};
-const fetchData = async () => {
-  const { data } = await axios("http://localhost:3000/dane", {
-    mode: "no-cors",
-  });
-  return data.map((el) => ({
-    ...el,
-    data: el.data.split("-").reverse().join("-"),
-  }));
-};
-
-const today = new Date();
 const App = () => {
   const [kwota, setKwota] = useState("");
-  // const [day, setDay] = useState(today.getDate().toString());
-  // const [month, setMonth] = useState((today.getMonth() + 1).toString());
-  // const [year, setYear] = useState(today.getFullYear().toString());
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
   const [wydatkiGrupowane, setWydatkiGrupowane] = useState({});
