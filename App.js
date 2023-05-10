@@ -3,7 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Button, Dimensions, Text, TextInput, View } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import DateInput from "./components/DateInput";
-import './utils/index'
+import {
+  convertCurrencyToInteger,
+  convertIntegerToCurrency,
+  createfilter,
+  fetchData,
+  groupByCategory,
+  zapiszDane,
+} from "./utils/index";
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -66,7 +73,7 @@ const App = () => {
   }, [wydatkiGrupowane]);
 
   return (
-    <View style={{ padding: 16 }}>
+    <View style={{ padding: 32, marginRight: 16 }}>
       <Text>Kwota:</Text>
       <TextInput
         value={kwota}
@@ -135,7 +142,8 @@ const App = () => {
           <Text>
             {convertIntegerToCurrency(
               plotData.reduce((acc, { kwota }) => acc + kwota, 0)
-            )} zł
+            )}{" "}
+            zł
           </Text>
         </View>
       )}
