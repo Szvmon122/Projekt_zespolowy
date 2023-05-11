@@ -1,16 +1,15 @@
 import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
-import { Button, Dimensions, Text, TextInput, View } from "react-native";
-import { PieChart } from "react-native-chart-kit";
+import { Button, Text, TextInput, View } from "react-native";
 import DateInput from "./components/DateInput";
 import {
   convertCurrencyToInteger,
   convertIntegerToCurrency,
   createfilter,
   fetchData,
-  groupByCategory,
   zapiszDane,
 } from "./utils/index";
+import Summary from "./views/Summary";
 
 const Categories = [
   "Zakupy Spożywcze",
@@ -25,10 +24,8 @@ const App = () => {
   const [kwota, setKwota] = useState("");
   const [kategoria, setKategoria] = useState(Categories[0]);
   const [wydatki, setWydatki] = useState([]);
-  const [wydatkiGrupowane, setWydatkiGrupowane] = useState({});
-  const [plotData, setPlotData] = useState([]);
-  const [rangeStart, setRangeStart] = useState(new Date());
-  const [rangeEnd, setRangeEnd] = useState(new Date());
+  const [currentView, setCurrentView] = useState("main");
+  const [date, setDate] = useState();
 
   function deleteWydatek(i) {
     setWydatki([...wydatki.splice(0, i), ...wydatki.splice(i + 1)]);
@@ -37,117 +34,69 @@ const App = () => {
   const handleDodaj = async () => {
     const nowyWydatek = {
       kwota: convertCurrencyToInteger(parseFloat(kwota)),
-      data: [year, month, day].join("-"),
+      data: [date.getFullYear(), date.getMonth() + 1, date.getDate()].join("-"),
       kategoria,
     };
-    setWydatki([...wydatki, nowyWydatek]);
+    setWydatki([nowyWydatek, ...wydatki]);
     setKategoria(Categories[0]);
+    setKwota('')
   };
 
   useEffect(() => {
-    fetchData().then(setWydatki);
     // pobierzDane("wydatki")
     //   .then(setWydatki)
     //   .catch(() => setWydatki([]));
+    fetchData().then(setWydatki);
   }, []);
 
   useEffect(() => {
     zapiszDane("wydatki", wydatki);
-  }, [wydatki, rangeEnd, rangeStart]);
-
-  useEffect(() => {
-    setWydatkiGrupowane(
-      groupByCategory(wydatki.filter(createfilter(rangeStart, rangeEnd)))
-    );
-  }, [rangeStart, rangeEnd]);
-
-  useEffect(() => {
-    setPlotData(
-      Object.entries(wydatkiGrupowane).map(([name, arr], i) => ({
-        name,
-        kwota: arr.reduce((a, b) => a + b.kwota, 0),
-        color: `rgba(33,70, 155,${(i + 1) * 0.1})`,
-        legendFontColor: `rgba(0,0,0, 1)`,
-      }))
-    );
-  }, [wydatkiGrupowane]);
+  }, [wydatki]);
 
   return (
-    <View style={{ padding: 32, marginRight: 16 }}>
-      <Text>Kwota:</Text>
-      <TextInput
-        value={kwota}
-        onChangeText={setKwota}
-        keyboardType="numeric"
-        style={{ borderWidth: 1, padding: 8 }}
+    <View style={{ width: "100vw", padding: 16 }}>
+      <Button
+        title={currentView === "summary" ? "zarządzaj" : "zestawienie"}
+        onPress={() =>
+          setCurrentView(currentView === "summary" ? "main" : "summary")
+        }
       />
+      {currentView === "summary" ? (
+        <Summary data={wydatki} />
+      ) : (
+        <View style={{ width: "100%", padding: 32 }}>
+          <Text>Kwota:</Text>
+          <TextInput
+            value={kwota}
+            onChangeText={setKwota}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, padding: 8 }}
+          />
 
-      {/* <DateInput onChange={(date) => console.log(date) }/> */}
-      <View style={{ flex: 1, flexDirection: "row", gap: "8px" }}>
-        <View>
-          <Text>{rangeStart.toDateString()}</Text>
-          <Text>Zakres od:</Text>
-          <DateInput onChange={setRangeStart} />
-        </View>
-        <View>
-          <Text>{rangeEnd.toDateString()}</Text>
-          <Text>Zakres do:</Text>
-          <DateInput onChange={setRangeEnd} />
-        </View>
-      </View>
+          <DateInput onChange={setDate} />
 
-      <Text>Kategoria:</Text>
-      <Picker
-        selectedValue={kategoria}
-        onValueChange={setKategoria}
-        style={{ borderWidth: 1 }}
-      >
-        {Categories.map((category) => (
-          <Picker.Item key={category} label={category} value={category} />
-        ))}
-      </Picker>
+          <Text>Kategoria:</Text>
+          <Picker
+            selectedValue={kategoria}
+            onValueChange={setKategoria}
+            style={{ borderWidth: 1 }}
+          >
+            {Categories.map((category) => (
+              <Picker.Item key={category} label={category} value={category} />
+            ))}
+          </Picker>
 
-      <Button title="Dodaj" onPress={handleDodaj} />
-      {/* {wydatki
-        .filter(createfilter(new Date("2023-04-15"), new Date("2023-04-25")))
-        .splice(0, 5)
-        .map((wydatek, i) => (
-          <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
-            <Button title="Usuń" onPress={() => deleteWydatek(i)} />
-            <Text>{wydatek.kwota}</Text>
-            <Text>{wydatek.data.replaceAll("-", "/")}</Text>
-            <Text>{wydatek.kategoria}</Text>
-          </View>
-        ))} */}
-
-      {plotData.length !== 0 && (
-        <PieChart
-          data={plotData}
-          accessor={"kwota"}
-          width={Dimensions.get("window").width}
-          height={300}
-          backgroundColor="transparent"
-          chartConfig={{
-            backgroundColor: "#e26a00",
-            backgroundGradientFrom: "#fb8c00",
-            backgroundGradientTo: "#ffa726",
-
-            color: (opacity = 1, i) => `rgba(0, 0, 0, ${opacity})`,
-          }}
-        />
-      )}
-      {plotData.length !== 0 && (
-        <View>
-          <Text>W wybranym okresie wydałeś łącznie:</Text>
-          <Text>
-            {convertIntegerToCurrency(
-              plotData.reduce((acc, { kwota }) => acc + kwota, 0)
-            )}{" "}
-            zł
-          </Text>
+          <Button title="Dodaj" onPress={handleDodaj} />
+          {wydatki.map((wydatek, i) => (
+            <View key={wydatek.kwota.toString() + i} style={{ marginTop: 16 }}>
+              <Button title="Usuń" onPress={() => deleteWydatek(i)} />
+              <Text>{convertIntegerToCurrency(wydatek.kwota)}</Text>
+              <Text>{wydatek.data.replaceAll("-", "/")}</Text>
+              <Text>{wydatek.kategoria}</Text>
+            </View>
+          ))}
         </View>
       )}
-      {/* <Button title="zestawienie" onPress={}     */}
     </View>
   );
 };

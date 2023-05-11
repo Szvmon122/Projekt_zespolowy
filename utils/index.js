@@ -65,3 +65,4 @@ export const pobierzDane = async (klucz) => {
     return [];
   }
 };
+
